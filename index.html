@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Spaceship</title>
+        <style>
+        html, body {
+            margin: 0;
+            overflow: hidden;
+        }
+        </style>
+
+        <script>
+        function onLoad() {
+            const canvas = document.getElementById('canvas')
+            canvas.width  = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            canvas.addEventListener('click', onClick)
+
+            window.setInterval(draw, 16)
+        }
+
+        let rect = {
+            x: w(250), 
+            y: h(250)
+        }
+
+        let ship = {
+            x: 0, 
+            y: 0,
+            width: w(100),
+            height: h(50),
+            speed: 20,
+
+            draw(ctx) {
+                let shipImg = document.getElementById('ship')
+                ctx.drawImage(shipImg, ship.x, ship.y, ship.width, ship.height)
+            }
+        }
+
+        let buttonUp = {
+            x: w(60),
+            y: h(425),
+            width: w(25),
+            height: w(25),
+
+            draw(ctx) {
+                ctx.fillStyle = 'white'
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.width, this.height, 0, 0, Math.PI * 2)
+                ctx.fill();
+            },
+            onClick(event) {
+                ship.y += ship.speed
+            }
+        }
+
+        let buttonDown = {
+            x: w(460),
+            y: h(425),
+            width: w(25),
+            height: w(25),
+
+            draw(ctx) {
+                ctx.fillStyle = 'white'
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.width, this.height, 0, 0, Math.PI * 2)
+                ctx.fill();
+            },
+            onClick: (event) => {
+                ship.y -= ship.speed
+            }
+        }
+
+        let Buttons = [buttonUp, buttonDown]
+
+        function onClick(event) {
+            for (let btn of Buttons) {
+                if (isEllipseClicked(btn, event.clientX, event.clientY)) {
+                    console.log('hit')
+                    btn.onClick(event)
+                }
+            }
+            
+        }
+
+        function draw() {
+            const canvas = document.getElementById('canvas')
+            const ctx = canvas.getContext('2d')
+
+            let backgroundImg = document.getElementById('sky')
+            ctx.drawImage(backgroundImg, 0, 0, window.innerWidth, window.innerHeight)
+
+            ship.draw(ctx)
+
+            buttonUp.draw(ctx)
+            buttonDown.draw(ctx)
+            
+
+            ctx.fillRect(rect.x, rect.y, 100, 150)
+            rect.x += Math.random() * 4 - 2
+            rect.y += Math.random() * 4 - 2
+        }
+
+        function isEllipseClicked(ellipse, x, y) {
+            let val =   Math.pow(x - ellipse.x, 2) / Math.pow(ellipse.width, 2) + 
+                        Math.pow(y - ellipse.y, 2) / Math.pow(ellipse.height, 2)
+
+            return val >= 1
+        }
+
+        function w(size) {
+            return size * (window.innerWidth / 500)
+        }
+
+        function h(size) {
+            return size * (window.innerHeight / 500)
+        }
+
+        </script>
+    </head>
+    <body onload="onLoad()">
+        <canvas id="canvas">
+            <img src="assets/blow.png" id="blow" />
+            <img src="assets/meteor.png" id="meteor" />
+            <img src="assets/ship.png" id="ship" />
+            <img src="assets/sky.png" id="sky" />
+        </canvas>
+    </body>
+</html>
