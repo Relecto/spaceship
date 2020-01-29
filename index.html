@@ -20,11 +20,6 @@
             window.setInterval(draw, 16)
         }
 
-        let rect = {
-            x: w(250), 
-            y: h(250)
-        }
-
         let ship = {
             x: 0, 
             y: 0,
@@ -167,11 +162,6 @@
             ctx.font = '4vw monospaced'
             ctx.fillText(`Lives: ${lives}`, w(10), h(40))
             ctx.fillText(`Score: ${score}`, w(10), h(90))
-            
-
-            ctx.fillRect(rect.x, rect.y, 100, 150)
-            rect.x += Math.random() * 4 - 2
-            rect.y += Math.random() * 4 - 2
         }
 
 
