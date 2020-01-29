@@ -12,8 +12,8 @@
         <script>
         function onLoad() {
             const canvas = document.getElementById('canvas')
-            canvas.width  = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width  = window.innerWidth
+            canvas.height = window.innerHeight
 
             canvas.addEventListener('click', onClick)
 
@@ -34,7 +34,20 @@
 
             draw(ctx) {
                 let shipImg = document.getElementById('ship')
-                ctx.drawImage(shipImg, ship.x, ship.y, ship.width, ship.height)
+                ctx.drawImage(shipImg, this.x, this.y, this.width, this.height)
+            }, 
+
+            moveUp() {
+                this.y -= this.speed
+                if (this.y < 0) {
+                    this.y = 0
+                }
+            },
+            moveDown() {
+                ship.y += this.speed
+                if (this.y > window.innerHeight - this.height) {
+                    this.y = window.innerHeight - this.height
+                }
             }
         }
 
@@ -49,9 +62,6 @@
                 ctx.beginPath();
                 ctx.ellipse(this.x, this.y, this.width, this.height, 0, 0, Math.PI * 2)
                 ctx.fill();
-            },
-            onClick(event) {
-                ship.y += ship.speed
             }
         }
 
@@ -66,22 +76,65 @@
                 ctx.beginPath();
                 ctx.ellipse(this.x, this.y, this.width, this.height, 0, 0, Math.PI * 2)
                 ctx.fill();
-            },
-            onClick: (event) => {
-                ship.y -= ship.speed
             }
         }
 
-        let Buttons = [buttonUp, buttonDown]
+        let meteor = {
+            x: window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            width: w(50),
+            height: w(25),
+            speed: 10,
+
+
+            reset() {
+                this.x = window.innerWidth
+                this.y = Math.random() * window.innerHeight
+                this.speed = Math.random() * 3 + 5
+            },
+            draw(ctx) {
+                this.x -= this.speed
+                if (this.x < 0) {
+                    score++
+                    this.reset()
+                } 
+
+                let meteorImg = document.getElementById('meteor')
+                ctx.drawImage(meteorImg, this.x, this.y, this.width, this.height)
+            },
+            blow() {
+                let blow = {
+                    x: this.x,
+                    y: this.y,
+                    width: w(200),
+                    height: w(50),
+
+                    draw(ctx) {
+                        let meteorImg = document.getElementById('blow')
+                        ctx.drawImage(meteorImg, this.x, this.y, this.width, this.height)
+                    }
+                }
+
+                blows.push(blow)
+
+                window.setTimeout(() => blows.shift(), 500)
+            }
+        }
+
+        let meteors = [meteor, Object.assign({}, meteor), Object.assign({}, meteor)]
+        let blows = []
+
+        let lives = 3
+        let score = 0
 
         function onClick(event) {
-            for (let btn of Buttons) {
-                if (isEllipseClicked(btn, event.clientX, event.clientY)) {
-                    console.log('hit')
-                    btn.onClick(event)
-                }
+            if (isPointInEllipse(buttonUp, event.clientX, event.clientY)) {
+                ship.moveUp()
             }
-            
+
+            if (isPointInEllipse(buttonDown, event.clientX, event.clientY)) {
+                ship.moveDown()
+            }
         }
 
         function draw() {
@@ -95,6 +148,25 @@
 
             buttonUp.draw(ctx)
             buttonDown.draw(ctx)
+
+            for (let m of meteors) {
+                m.draw(ctx)
+                if (rectCollision(ship, m)) {
+                    console.log('BOOM')
+                    lives--
+                    m.blow()
+                    m.reset()
+                }
+            }
+
+            for (let b of blows) {
+                b.draw(ctx)
+            }
+
+            ctx.fillStyle = 'white'
+            ctx.font = '4vw monospaced'
+            ctx.fillText(`Lives: ${lives}`, w(10), h(40))
+            ctx.fillText(`Score: ${score}`, w(10), h(90))
             
 
             ctx.fillRect(rect.x, rect.y, 100, 150)
@@ -102,7 +174,15 @@
             rect.y += Math.random() * 4 - 2
         }
 
-        function isEllipseClicked(ellipse, x, y) {
+
+        function rectCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y
+        }
+
+        function isPointInEllipse(ellipse, x, y) {
             let val =   Math.pow(x - ellipse.x, 2) / Math.pow(ellipse.width, 2) + 
                         Math.pow(y - ellipse.y, 2) / Math.pow(ellipse.height, 2)
 
