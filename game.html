@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Spaceship</title>
+        <style>
+        html, body {
+            margin: 0;
+            overflow: hidden;
+        }
+        </style>
+
+        <script>
+        const FRAME_RATE = 60
+
+        let ship = {
+            x: 0, 
+            y: 0,
+            width: w(100),
+            height: h(50),
+            speed: 20,
+
+            draw(ctx) {
+                let shipImg = document.getElementById('ship')
+                ctx.drawImage(shipImg, this.x, this.y, this.width, this.height)
+            }, 
+
+            moveUp() {
+                this.y -= this.speed
+                if (this.y < 0) {
+                    this.y = 0
+                }
+            },
+            moveDown() {
+                this.y += this.speed
+                if (this.y > window.innerHeight - this.height) {
+                    this.y = window.innerHeight - this.height
+                }
+            }
+        }
+
+        let buttonUp = {
+            x: w(60),
+            y: h(425),
+            width: w(25),
+            height: w(25),
+
+            draw(ctx) {
+                ctx.fillStyle = 'white'
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.width, this.height, 0, 0, Math.PI * 2)
+                ctx.fill();
+            }
+        }
+
+        let buttonDown = {
+            x: w(460),
+            y: h(425),
+            width: w(25),
+            height: w(25),
+
+            draw(ctx) {
+                ctx.fillStyle = 'white'
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.width, this.height, 0, 0, Math.PI * 2)
+                ctx.fill();
+            }
+        }
+
+        let meteor = {
+            x: window.innerWidth,
+            y: 0,
+            width: w(50),
+            height: w(25),
+            speed: 10,
+
+            reset() {
+                this.x = window.innerWidth
+                this.y = Math.random() * window.innerHeight
+                this.speed = Math.random() * 3 + 5
+            },
+            draw(ctx) {
+                this.x -= this.speed
+                if (this.x < 0) {
+                    score++
+                    this.reset()
+                } 
+
+                let meteorImg = document.getElementById('meteor')
+                ctx.drawImage(meteorImg, this.x, this.y, this.width, this.height)
+            },
+            blow() {
+                let blow = {
+                    x: this.x,
+                    y: this.y,
+                    width: w(200),
+                    height: w(50),
+
+                    draw(ctx) {
+                        let meteorImg = document.getElementById('blow')
+                        ctx.drawImage(meteorImg, this.x, this.y, this.width, this.height)
+                    }
+                }
+
+                blows.push(blow)
+
+                window.setTimeout(() => blows.shift(), 500)
+            }
+        }
+
+        let meteors = []
+        let blows = []
+
+        let lives = 3
+        let score = 0
+
+        function setup() {
+            // Растягиваем холст на всю страничку
+            const canvas = document.getElementById('canvas')
+            canvas.width  = window.innerWidth
+            canvas.height = window.innerHeight
+
+            // Добавляем метеоры
+            for (let i = 0; i < 3; i++) {
+                let m = Object.assign({}, meteor) // клонируем метеор
+                m.reset()
+                meteors.push(m)
+            }
+
+            canvas.addEventListener('click', onClick)
+            window.setInterval(draw, 1000/FRAME_RATE)
+        }
+
+        function draw() {
+            const canvas = document.getElementById('canvas')
+            const ctx = canvas.getContext('2d')
+
+            let backgroundImg = document.getElementById('sky')
+            ctx.drawImage(backgroundImg, 0, 0, window.innerWidth, window.innerHeight)
+
+            ship.draw(ctx)
+
+            buttonUp.draw(ctx)
+            buttonDown.draw(ctx)
+
+            for (let m of meteors) {
+                m.draw(ctx)
+                if (rectCollision(ship, m)) {
+                    console.log('BOOM')
+                    lives--
+
+                    if (lives <= 0) {
+                        window.location.replace('gameover.html')
+                    }
+
+                    m.blow()
+                    m.reset()
+                }
+            }
+
+            for (let b of blows) {
+                b.draw(ctx)
+            }
+
+            ctx.fillStyle = 'white'
+            ctx.font = '4vw monospaced'
+            ctx.fillText(`Lives: ${lives}`, w(10), h(40))
+            ctx.fillText(`Score: ${score}`, w(10), h(90))
+        }
+
+        function onClick(event) {
+            if (isPointInEllipse(buttonUp, event.clientX, event.clientY)) {
+                ship.moveUp()
+            }
+
+            if (isPointInEllipse(buttonDown, event.clientX, event.clientY)) {
+                ship.moveDown()
+            }
+        }
+
+
+
+        function rectCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y
+        }
+
+        function isPointInEllipse(ellipse, x, y) {
+            let val =   Math.pow(x - ellipse.x, 2) / Math.pow(ellipse.width, 2) + 
+                        Math.pow(y - ellipse.y, 2) / Math.pow(ellipse.height, 2)
+
+            return val >= 1
+        }
+
+        function w(size) {
+            return size * (window.innerWidth / 500)
+        }
+
+        function h(size) {
+            return size * (window.innerHeight / 500)
+        }
+
+        </script>
+    </head>
+    <body onload="setup()">
+        <canvas id="canvas">
+            <img src="assets/blow.png" id="blow" />
+            <img src="assets/meteor.png" id="meteor" />
+            <img src="assets/ship.png" id="ship" />
+            <img src="assets/sky.png" id="sky" />
+        </canvas>
+    </body>
+</html>
